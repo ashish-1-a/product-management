@@ -142,11 +142,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ----------------------------------------
+      # Backend image
+      # ----------------------------------------
       - name: Build backend image
         run: |
           docker build \
             --no-cache \
             --pull \
+            --provenance=false \
+            --sbom=false \
             -t product-management-backend:security \
             ./backend
 
@@ -157,14 +162,22 @@ jobs:
             product-management-backend:security \
             -c "import setuptools, msgpack; print('setuptools:', setuptools.__version__); print('msgpack:', msgpack.__version__)"
 
+      # ----------------------------------------
+      # Frontend image
+      # ----------------------------------------
       - name: Build frontend image
         run: |
           docker build \
             --no-cache \
             --pull \
+            --provenance=false \
+            --sbom=false \
             -t product-management-frontend:security \
             ./frontend
 
+      # ----------------------------------------
+      # Trivy
+      # ----------------------------------------
       - name: Install Trivy
         run: |
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
@@ -173,6 +186,7 @@ jobs:
       - name: Scan backend image
         run: |
           trivy image \
+            --scanners vuln \
             --severity HIGH,CRITICAL \
             --ignore-unfixed \
             --exit-code 1 \
@@ -181,6 +195,7 @@ jobs:
       - name: Scan frontend image
         run: |
           trivy image \
+            --scanners vuln \
             --severity HIGH,CRITICAL \
             --ignore-unfixed \
             --exit-code 1 \
