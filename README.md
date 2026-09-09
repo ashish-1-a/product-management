@@ -36,8 +36,7 @@ Check Docker:
 ```bash
 docker --version
 
-
-3. Clone the Repository
+##3. Clone the Repository
 
 Clone the project:
 
@@ -46,7 +45,8 @@ git clone https://github.com/ashish-1-a/product-management.git
 Go inside the project:
 
 cd product-management
-4. Configure Environment Variables
+
+## 4. Configure Environment Variables
 
 Create the local .env file from the provided example:
 
@@ -61,7 +61,8 @@ Important:
 .env contains local configuration and should not be committed to Git.
 .env.example is provided as a safe configuration template.
 Production credentials should always be replaced with secure credentials.
-5. Start the Complete Application
+
+## 5. Start the Complete Application
 
 Run:
 
@@ -84,7 +85,9 @@ Starts the FastAPI backend.
 Starts Nginx.
 Serves the React frontend.
 Routes /api/* requests from Nginx to FastAPI.
-6. Check Application Status
+
+
+###  6. Check Application Status
 
 Open another terminal:
 
@@ -98,7 +101,7 @@ product-management-frontend
 
 The database and backend have Docker health checks.
 
-7. Open the Application
+## 7. Open the Application
 
 Open the following URL in your browser:
 
@@ -106,7 +109,7 @@ http://localhost:3000
 
 The Product Management dashboard should appear.
 
-8. Backend API
+##  8. Backend API
 
 The FastAPI backend is available at:
 
@@ -133,7 +136,8 @@ Expected response:
 {
   "status": "ok"
 }
-9. Frontend Health Check
+
+###9. Frontend Health Check
 
 The frontend is served through Nginx.
 
@@ -163,7 +167,8 @@ FastAPI
    |
    v
 PostgreSQL
-10. Database Persistence
+
+## 10. Database Persistence
 
 PostgreSQL uses a Docker named volume:
 
@@ -189,7 +194,7 @@ docker compose down -v
 
 The -v option removes the PostgreSQL volume and therefore deletes the stored local database data.
 
-11. Useful Docker Commands
+## 11. Useful Docker Commands
 
 Check running services:
 
