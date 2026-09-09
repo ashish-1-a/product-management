@@ -1,6 +1,19 @@
 # Product Management System
 
+
+Backend NGINX Note
+
+For the current assignment, NGINX is configured for the frontend and API reverse-proxy routing. The backend is directly exposed on port 8000 for local testing and easier API verification.
+
+In a production deployment, the backend port would typically remain internal and API traffic would be routed through NGINX / Load Balancer, with HTTPS, access controls, rate limiting, and other security policies applied at the edge.
+
+This setup keeps the assignment simple to run and test locally while following a more production-oriented architecture for future deployment.
+
 A production-minded full-stack Product Management application built using React, TypeScript, FastAPI, PostgreSQL, SQLAlchemy, Alembic, Docker, Docker Compose, and Nginx.
+
+
+
+
 
 The application provides complete product CRUD operations along with search, status filtering, pagination, validation, error handling, health checks, database migrations, and persistent PostgreSQL storage.
 
