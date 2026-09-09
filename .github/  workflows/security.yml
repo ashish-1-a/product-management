@@ -4,23 +4,21 @@ on:
   push:
     branches:
       - main
+
   pull_request:
     branches:
       - main
+
   workflow_dispatch:
 
 permissions:
   contents: read
-  security-events: write
 
 jobs:
+
   backend-security:
     name: Backend Security
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: backend
 
     steps:
       - name: Checkout
@@ -32,28 +30,28 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
+        working-directory: backend
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install ruff bandit pip-audit
 
       - name: Ruff
+        working-directory: backend
         run: ruff check .
 
       - name: Bandit
+        working-directory: backend
         run: bandit -r app -ll
 
-      - name: Dependency audit
+      - name: Dependency Audit
+        working-directory: backend
         run: pip-audit
 
 
   frontend-security:
     name: Frontend Security
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: frontend
 
     steps:
       - name: Checkout
@@ -67,12 +65,15 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
+        working-directory: frontend
         run: npm ci
 
-      - name: NPM audit
+      - name: NPM Audit
+        working-directory: frontend
         run: npm audit --audit-level=high
 
-      - name: Build frontend
+      - name: Build Frontend
+        working-directory: frontend
         run: npm run build
 
 
@@ -100,26 +101,32 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build backend image
-        run: docker build -t product-management-backend:security ./backend
+      - name: Build Backend Image
+        run: |
+          docker build \
+            -t product-management-backend:security \
+            ./backend
 
-      - name: Build frontend image
-        run: docker build -t product-management-frontend:security ./frontend
+      - name: Build Frontend Image
+        run: |
+          docker build \
+            -t product-management-frontend:security \
+            ./frontend
 
-      - name: Scan backend image
+      - name: Scan Backend Image
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: product-management-backend:security
           format: table
-          exit-code: "1"
-          severity: "CRITICAL,HIGH"
+          severity: HIGH,CRITICAL
           ignore-unfixed: true
+          exit-code: "1"
 
-      - name: Scan frontend image
+      - name: Scan Frontend Image
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: product-management-frontend:security
           format: table
-          exit-code: "1"
-          severity: "CRITICAL,HIGH"
+          severity: HIGH,CRITICAL
           ignore-unfixed: true
+          exit-code: "1"
