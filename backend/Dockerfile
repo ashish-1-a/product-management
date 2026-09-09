@@ -17,7 +17,10 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY requirements.txt .
 
 RUN pip install --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+    && pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir --upgrade \
+        "setuptools>=78.1.1" \
+        "msgpack>=1.2.1"
 
 
 # =========================
@@ -32,6 +35,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 COPY --from=builder /opt/venv /opt/venv
+
 COPY app ./app
 COPY alembic.ini .
 COPY entrypoint.sh .
