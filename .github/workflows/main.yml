@@ -4,11 +4,9 @@ on:
   push:
     branches:
       - main
-
   pull_request:
     branches:
       - main
-
   workflow_dispatch:
 
 permissions:
@@ -16,9 +14,9 @@ permissions:
 
 jobs:
 
-  # =========================
-  # Backend Security
-  # =========================
+  # ==========================================
+  # Backend SAST + Dependency Security
+  # ==========================================
   backend-security:
     name: Backend Security
     runs-on: ubuntu-latest
@@ -39,22 +37,31 @@ jobs:
           pip install -r requirements.txt
           pip install ruff bandit pip-audit
 
-      - name: Run Ruff
+      - name: Ruff
         working-directory: backend
         run: ruff check .
 
-      - name: Run Bandit
+      - name: Bandit SAST
         working-directory: backend
         run: bandit -r app -ll
 
-      - name: Run pip-audit
+      - name: Python dependency audit
         working-directory: backend
         run: pip-audit
 
+      - name: Semgrep SAST
+        run: |
+          python -m pip install semgrep
+          semgrep scan \
+            --config p/python \
+            --config p/security-audit \
+            --error \
+            backend/app
 
-  # =========================
+
+  # ==========================================
   # Frontend Security
-  # =========================
+  # ==========================================
   frontend-security:
     name: Frontend Security
     runs-on: ubuntu-latest
@@ -74,18 +81,28 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Run npm audit
+      - name: NPM dependency audit
         working-directory: frontend
         run: npm audit --audit-level=high
 
-      - name: Build frontend
+      - name: Frontend build
         working-directory: frontend
         run: npm run build
 
+      - name: Semgrep SAST
+        run: |
+          python -m pip install semgrep
+          semgrep scan \
+            --config p/javascript \
+            --config p/typescript \
+            --config p/security-audit \
+            --error \
+            frontend/src
 
-  # =========================
+
+  # ==========================================
   # Secret Scanning
-  # =========================
+  # ==========================================
   secret-scan:
     name: Secret Scan
     runs-on: ubuntu-latest
@@ -96,15 +113,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run Gitleaks
+      - name: Gitleaks
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
-  # =========================
-  # Docker Security
-  # =========================
+  # ==========================================
+  # Docker Image Security
+  # ==========================================
   docker-security:
     name: Docker Security
     runs-on: ubuntu-latest
@@ -125,20 +142,49 @@ jobs:
             -t product-management-frontend:security \
             ./frontend
 
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
+            | sh -s -- -b /usr/local/bin v0.74.0
+
       - name: Scan backend image
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: product-management-backend:security
-          format: table
-          severity: HIGH,CRITICAL
-          ignore-unfixed: true
-          exit-code: "1"
+        run: |
+          trivy image \
+            --severity HIGH,CRITICAL \
+            --ignore-unfixed \
+            --exit-code 1 \
+            product-management-backend:security
 
       - name: Scan frontend image
-        uses: aquasecurity/trivy-action@0.28.0
+        run: |
+          trivy image \
+            --severity HIGH,CRITICAL \
+            --ignore-unfixed \
+            --exit-code 1 \
+            product-management-frontend:security
+
+
+  # ==========================================
+  # OWASP Dependency Check
+  # ==========================================
+  owasp-dependency-check:
+    name: OWASP Dependency Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
         with:
-          image-ref: product-management-frontend:security
-          format: table
-          severity: HIGH,CRITICAL
-          ignore-unfixed: true
-          exit-code: "1"
+          project: "Product Management"
+          path: "."
+          format: "HTML"
+          out: "reports"
+
+      - name: Upload OWASP report
+        uses: actions/upload-artifact@v4
+        with:
+          name: owasp-dependency-check-report
+          path: reports
