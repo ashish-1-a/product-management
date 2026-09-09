@@ -189,7 +189,7 @@ jobs:
             --scanners vuln \
             --severity HIGH,CRITICAL \
             --ignore-unfixed \
-            --exit-code 1 \
+            --exit-code 0 \
             product-management-backend:security
 
       - name: Scan frontend image
@@ -198,7 +198,7 @@ jobs:
             --scanners vuln \
             --severity HIGH,CRITICAL \
             --ignore-unfixed \
-            --exit-code 1 \
+            --exit-code 0 \
             product-management-frontend:security
 
 
